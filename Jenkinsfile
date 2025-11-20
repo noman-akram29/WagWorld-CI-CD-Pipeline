@@ -6,6 +6,7 @@ pipeline{
     }
     environment {
         SCANNER_HOME=tool 'SonarQube-Scanner'
+        DEP_CHECK_DATA = '/var/jenkins_home/dependency-check-data'
     }
     stages{
         stage ('Workspace CleanUp'){
@@ -28,6 +29,11 @@ pipeline{
                 sh 'mvn test'
             }
         }
+        stage ('Build war file'){
+            steps{
+                sh 'mvn clean install -DskipTests=true'
+            }
+        }
         stage("SonarQube Analysis "){
             steps{
                 withSonarQubeEnv('SonarQube-Server') {
@@ -38,22 +44,17 @@ pipeline{
                 }
             }
         }
+        stage("OWASP Dependency Check"){
+            steps{
+                dependencyCheck additionalArguments: "--scan ./ --format XML --data $DEP_CHECK_DATA --nthreads 4 --exclude target", odcInstallation: 'Dependency-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
         stage("Code Quality Gate"){
             steps {
                 script {
                 waitForQualityGate abortPipeline: false, credentialsId: 'SonarQube-Token-for-Jenkins'
                 }
-            }
-        }
-        stage ('Build war file'){
-            steps{
-                sh 'mvn clean install -DskipTests=true'
-            }
-        }
-        stage("OWASP Dependency Check"){
-            steps{
-                dependencyCheck additionalArguments: '--scan ./ --format XML ', odcInstallation: 'Dependency-Check'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
    }
