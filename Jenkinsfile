@@ -6,7 +6,6 @@ pipeline{
     }
     environment {
         SCANNER_HOME=tool 'SonarQube-Scanner'
-        DEP_CHECK_DATA = '/var/jenkins_home/dependency-check-data'
     }
     stages{
         stage ('Workspace CleanUp'){
@@ -46,7 +45,7 @@ pipeline{
         }
         stage("OWASP Dependency Check"){
             steps{
-                dependencyCheck additionalArguments: "--scan ./ --format XML --data $DEP_CHECK_DATA --nthreads 4 --exclude target", odcInstallation: 'Dependency-Check'
+                dependencyCheck additionalArguments: '--scan ./ --format XML ', odcInstallation: 'Dependency-Check'
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
