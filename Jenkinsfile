@@ -15,7 +15,7 @@ pipeline{
         }
         stage ('CheckOut SCM') {
             steps {
-                git branch: 'main', url: 'https://github.com/noman-akram29/Jave-Application-CICD-using-Jenkins-Ansible-and-Docker.git'
+                git branch: 'main', url: 'https://github.com/noman-akram29/WagWorld-CI-CD-Pipeline.git'
             }
         }
         stage ('Maven Compile') {
