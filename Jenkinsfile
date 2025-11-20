@@ -31,7 +31,8 @@ pipeline{
         stage("SonarQube Analysis "){
             steps{
                 withSonarQubeEnv('SonarQube-Server') {
-                    sh ''' $SCANNER_HOME/bin/SonarQube-Scanner -Dsonar.projectName=WagWorld \
+                    sh ''' $SCANNER_HOME/bin/sonar-scanner \
+                    -Dsonar.projectName=WagWorld \
                     -Dsonar.java.binaries=. \
                     -Dsonar.projectKey=WagWorld '''
                 }
