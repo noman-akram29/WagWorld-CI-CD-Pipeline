@@ -1,13 +1,5 @@
-
-FROM tomcat:9.0-jdk17
-
-
-RUN rm -rf /usr/local/tomcat/webapps/*
-
-
-COPY target/*.war /usr/local/tomcat/webapps/ROOT.war
-
-EXPOSE 8080
-
-CMD ["catalina.sh", "run"]
-
+FROM openjdk:17.0.2
+COPY . /usr/src/myapp
+WORKDIR /usr/src/myapp
+RUN ./mvnw clean package
+CMD ./mvnw cargo:run -P tomcat90
