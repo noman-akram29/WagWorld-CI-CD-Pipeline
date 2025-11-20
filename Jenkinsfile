@@ -65,7 +65,18 @@ pipeline {
                 )]) {
 
                     sh '''
+                    echo "Current Directory:"
+                    pwd
+                    echo "Listing files:"
+                    ls -al
+                    echo "Listing workspace:"
+                    ls -al $WORKSPACE
+
                     cd $WORKSPACE
+
+                    echo "Listing inside WORKSPACE to verify playbook:"
+                    ls -al
+
                     ansible-playbook -i localhost, docker-playbook.yaml \
                     -c local \
                     --extra-vars "docker_hub_user=${DOCKER_USER} docker_pat=${DOCKER_PAT}"
