@@ -79,7 +79,7 @@ pipeline {
 
                     ansible-playbook -i localhost, docker-playbook.yaml \
                     -c local \
-                    --extra-vars "docker_hub_user=${DOCKER_USER} docker_pat=${DOCKER_PAT}"
+                    --extra-vars "docker_hub_user=${DOCKER_USER} docker_pat=${DOCKER_PAT} workspace_dir=$WORKSPACE"
                     '''
                 }
             }
