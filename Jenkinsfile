@@ -67,13 +67,8 @@ pipeline {
                     sh '''
                     echo "Current Directory:"
                     pwd
-                    echo "Listing files:"
-                    ls -al
                     echo "Listing workspace:"
                     ls -al $WORKSPACE
-
-                    cd $WORKSPACE
-
                     echo "Listing inside WORKSPACE to verify playbook:"
                     ls -al
 
