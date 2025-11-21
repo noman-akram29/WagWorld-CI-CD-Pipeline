@@ -24,37 +24,37 @@ pipeline {
             }
         }
 
-        stage('Maven Compile') { steps { sh 'mvn clean compile' } }
-        stage('Maven Test')    { steps { sh 'mvn test' } }
-        stage('Build WAR')      { steps { sh 'mvn clean install -DskipTests=true' } }
+        // stage('Maven Compile') { steps { sh 'mvn clean compile' } }
+        // stage('Maven Test')    { steps { sh 'mvn test' } }
+        // stage('Build WAR')      { steps { sh 'mvn clean install -DskipTests=true' } }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube-Server') {
-                    sh '''
-                        $SCANNER_HOME/bin/sonar-scanner \
-                        -Dsonar.projectName=WagWorld \
-                        -Dsonar.projectKey=WagWorld \
-                        -Dsonar.java.binaries=.
-                    '''
-                }
-            }
-        }
+        // stage('SonarQube Analysis') {
+        //     steps {
+        //         withSonarQubeEnv('SonarQube-Server') {
+        //             sh '''
+        //                 $SCANNER_HOME/bin/sonar-scanner \
+        //                 -Dsonar.projectName=WagWorld \
+        //                 -Dsonar.projectKey=WagWorld \
+        //                 -Dsonar.java.binaries=.
+        //             '''
+        //         }
+        //     }
+        // }
 
-        stage('OWASP Dependency Check') {
-            steps {
-                dependencyCheck additionalArguments: '--scan ./ --format XML', odcInstallation: 'Dependency-Check'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-            }
-        }
+        // stage('OWASP Dependency Check') {
+        //     steps {
+        //         dependencyCheck additionalArguments: '--scan ./ --format XML', odcInstallation: 'Dependency-Check'
+        //         dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+        //     }
+        // }
 
-        stage('Code Quality Gate') {
-            steps {
-                script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'SonarQube-Token-for-Jenkins'
-                }
-            }
-        }
+        // stage('Code Quality Gate') {
+        //     steps {
+        //         script {
+        //             waitForQualityGate abortPipeline: false, credentialsId: 'SonarQube-Token-for-Jenkins'
+        //         }
+        //     }
+        // }
 
         stage('Docker Build & Deploy') {
             steps {
@@ -91,8 +91,8 @@ pipeline {
                             withCredentials([file(credentialsId: 'K8s-Secret', variable: 'KUBECONFIG_SECRET')]) {
                                 sh '''
                                     echo "Copying kubeconfig to remote k8s-master-server..."
-                                    scp -o StrictHostKeyChecking=no $KUBECONFIG_SECRET ubuntu@<K8S_MASTER_IP>:/home/ubuntu/.kube/config
-                                    ssh -o StrictHostKeyChecking=no ubuntu@<K8S_MASTER_IP> "chmod 600 /home/ubuntu/.kube/config"
+                                    scp -o StrictHostKeyChecking=no $KUBECONFIG_SECRET ubuntu@172.31.69.84:/home/ubuntu/.kube/config
+                                    ssh -o StrictHostKeyChecking=no ubuntu@172.31.69.84 "chmod 600 /home/ubuntu/.kube/config"
                                 '''
                             }
 

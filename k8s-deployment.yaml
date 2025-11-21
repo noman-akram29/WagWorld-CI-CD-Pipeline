@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: petshop
+  name: wagworld-store
 spec:
   selector:
     matchLabels:
-      app: petshop
+      app: wagworld-store
   replicas: 1 
   template: 
     metadata:
       labels:
-        app: petshop
+        app: wagworld-store
     spec:
       containers:
-      - name: petshop
-        image: sevenajay/petshop:latest
+      - name: wagworld-store
+        image: nomanakram29/wagworld-store
         ports:
         - containerPort: 8080
         imagePullPolicy: Always
@@ -22,11 +22,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: petshop
+  name: wagworld-store
 spec:
   type: LoadBalancer
   selector:
-    app: petshop
+    app: wagworld-store
   ports:
   - name: http
     protocol: TCP
