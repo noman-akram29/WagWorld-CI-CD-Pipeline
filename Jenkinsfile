@@ -79,5 +79,36 @@ pipeline {
                 }
             }
         }
+        stage('Deploy to Kubernetes') {
+            steps {
+                dir("${WORKSPACE}") {  // Ensure we are in the correct workspace where the playbook exists
+                    script {
+                        // Use SSH agent with the private key that matches the public key in k8s-master-server
+                        sshagent(credentials: ['SSH-Key-for-K8s']) {  // <-- Create this credential in Jenkins (private key)
+                            
+                            // Optional: Copy kubeconfig secret file from Jenkins credentials to agent if needed
+                            // (Only required if kubeconfig is not already present on the target node)
+                            withCredentials([file(credentialsId: 'K8s-Secret', variable: 'KUBECONFIG_SECRET')]) {
+                                sh '''
+                                    echo "Copying kubeconfig to remote k8s-master-server..."
+                                    scp -o StrictHostKeyChecking=no $KUBECONFIG_SECRET ubuntu@<K8S_MASTER_IP>:/home/ubuntu/.kube/config
+                                    ssh -o StrictHostKeyChecking=no ubuntu@<K8S_MASTER_IP> "chmod 600 /home/ubuntu/.kube/config"
+                                '''
+                            }
+
+                            // Run the Ansible playbook that applies the Kubernetes manifest
+                            ansiblePlaybook(
+                                playbook: 'k8s-deployment-playbook.yml',
+                                inventory: '/etc/ansible/hosts',           // Your inventory containing k8s-master-server
+                                credentialsId: 'SSH-Key-for-K8s',  // Same SSH key
+                                disableHostKeyChecking: true,
+                                installation: 'ansible',
+                                extras: '-e "workspace_dir=${WORKSPACE}"' // Optional: pass workspace if needed inside playbook
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }

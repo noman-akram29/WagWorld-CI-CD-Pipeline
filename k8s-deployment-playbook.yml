@@ -1,0 +1,41 @@
+---
+- name: Deploy application to Kubernetes cluster
+  hosts: k8s-master-server                    # your inventory group or specific host
+  gather_facts: yes
+  vars:
+    kubeconfig_path: /home/ubuntu/.kube/config   # adjust if you use another user/path
+    app_manifest: /var/lib/jenkins/workspace/WagWorld-Pipeline/k8s-deployment.yaml
+
+  tasks:
+    - name: Ensure kubeconfig exists and has correct permissions
+      file:
+        path: "{{ kubeconfig_path }}"
+        state: file
+        owner: ubuntu
+        group: ubuntu
+        mode: '0600'
+      become: yes
+
+    - name: Copy deployment manifest from Jenkins workspace to the node
+      copy:
+        src: "{{ app_manifest }}"
+        dest: /home/ubuntu/k8s-deployment.yaml
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+      become: yes
+
+    - name: Deploy the application to Kubernetes
+      kubernetes.core.k8s:
+        state: present
+        src: /home/ubuntu/k8s-deployment.yaml
+        kubeconfig: "{{ kubeconfig_path }}"
+      become: yes
+      become_user: ubuntu     # run as the user who owns .kube/config
+
+    - name: (Optional) Show rollout status
+      command: kubectl rollout status -f /home/ubuntu/k8s-deployment.yaml --timeout=5m
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      become: yes
+      become_user: ubuntu
