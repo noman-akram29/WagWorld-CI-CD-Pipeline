@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: wagworld-store
-        image: nomanakram29/wagworld-store
+        image: nomanakram29/wagworld-store:latest
         ports:
         - containerPort: 8080
         imagePullPolicy: Always
