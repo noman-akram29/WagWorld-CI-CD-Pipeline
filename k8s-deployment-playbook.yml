@@ -46,5 +46,6 @@
         state: present
         src: /home/ubuntu/k8s-deployment.yaml
         kubeconfig: "{{ kubeconfig_path }}"
+        validate_certs: no
       become: yes
       become_user: ubuntu
