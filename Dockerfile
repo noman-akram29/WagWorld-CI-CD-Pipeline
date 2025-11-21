@@ -1,20 +1,14 @@
-# Dockerfile
-FROM openjdk:17.0.2
 
-WORKDIR /usr/src/myapp
+FROM tomcat:9.0.93-jre17-temurin-jammy
 
 
-COPY mvnw .
-COPY .mvn .mvn/
-COPY pom.xml .
+RUN rm -rf /usr/local/tomcat/webapps/*
 
 
-COPY src ./src
+COPY target/jpetstore.war /usr/local/tomcat/webapps/ROOT.war
 
 
-RUN chmod +x ./mvnw && ./mvnw -B clean package -DskipTests
+ENV JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom -Xms512m -Xmx1536m"
 
 EXPOSE 8080
 
-
-CMD ["./mvnw", "cargo:run", "-Ptomcat90"]
