@@ -1,10 +1,20 @@
 ---
 - name: Deploy application to Kubernetes cluster
-  hosts: k8s-master-server                    # your inventory group or specific host
+  hosts: k8s-master-server
   gather_facts: yes
   vars:
-    kubeconfig_path: /home/ubuntu/.kube/config   # adjust if you use another user/path
+    kubeconfig_path: /home/ubuntu/.kube/config
     app_manifest: /var/lib/jenkins/workspace/WagWorld-Pipeline/k8s-deployment.yaml
+
+  pre_tasks:
+    - name: Install required Python libraries for kubernetes.core module
+      pip:
+        name:
+          - kubernetes
+          - openshift
+          - pyyaml
+        executable: pip3
+      become: yes
 
   tasks:
     - name: Ensure kubeconfig exists and has correct permissions
@@ -31,7 +41,7 @@
         src: /home/ubuntu/k8s-deployment.yaml
         kubeconfig: "{{ kubeconfig_path }}"
       become: yes
-      become_user: ubuntu     # run as the user who owns .kube/config
+      become_user: ubuntu
 
     - name: (Optional) Show rollout status
       command: kubectl rollout status -f /home/ubuntu/k8s-deployment.yaml --timeout=5m
