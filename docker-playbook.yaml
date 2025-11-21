@@ -20,6 +20,7 @@
         name: "{{ docker_image }}"
         tag: latest
         path: "{{ workspace_dir }}"
+        source: "{{ workspace_dir }}"
         state: present
         # build: yes
 
