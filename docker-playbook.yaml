@@ -11,17 +11,17 @@
     container_port: 8080
 
   tasks:
-
     - name: Update apt package cache
       apt:
         update_cache: yes
 
     - name: Build Docker image
       docker_image:
-        path: "{{ workspace_dir }}"
         name: "{{ docker_image }}"
         tag: latest
+        path: "{{ workspace_dir }}"
         state: present
+        build: yes  # Add build option here to indicate Dockerfile should be built
 
     - name: Tag Docker image for Docker Hub
       command: docker tag {{ docker_image }}:latest {{ docker_hub_repo }}:latest
