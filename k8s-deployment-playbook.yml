@@ -11,7 +11,7 @@
       raw: apt update && apt install -y python3-pip
       become: yes
       changed_when: yes
-      
+
     - name: Install required Python libraries for kubernetes.core module
       pip:
         name:
@@ -19,6 +19,7 @@
           - openshift
           - pyyaml
         executable: pip3
+        extra_args: --break-system-packages
       become: yes
 
   tasks:
