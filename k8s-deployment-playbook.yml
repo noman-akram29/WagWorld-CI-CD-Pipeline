@@ -48,10 +48,3 @@
         kubeconfig: "{{ kubeconfig_path }}"
       become: yes
       become_user: ubuntu
-
-    - name: (Optional) Show rollout status
-      command: kubectl rollout status -f /home/ubuntu/k8s-deployment.yaml --timeout=5m
-      environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
-      become: yes
-      become_user: ubuntu

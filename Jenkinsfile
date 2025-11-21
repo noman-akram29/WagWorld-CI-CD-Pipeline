@@ -24,37 +24,37 @@ pipeline {
             }
         }
 
-        // stage('Maven Compile') { steps { sh 'mvn clean compile' } }
-        // stage('Maven Test')    { steps { sh 'mvn test' } }
-        // stage('Build WAR')      { steps { sh 'mvn clean install -DskipTests=true' } }
+        stage('Maven Compile') { steps { sh 'mvn clean compile' } }
+        stage('Maven Test')    { steps { sh 'mvn test' } }
+        stage('Build WAR')      { steps { sh 'mvn clean install -DskipTests=true' } }
 
-        // stage('SonarQube Analysis') {
-        //     steps {
-        //         withSonarQubeEnv('SonarQube-Server') {
-        //             sh '''
-        //                 $SCANNER_HOME/bin/sonar-scanner \
-        //                 -Dsonar.projectName=WagWorld \
-        //                 -Dsonar.projectKey=WagWorld \
-        //                 -Dsonar.java.binaries=.
-        //             '''
-        //         }
-        //     }
-        // }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube-Server') {
+                    sh '''
+                        $SCANNER_HOME/bin/sonar-scanner \
+                        -Dsonar.projectName=WagWorld \
+                        -Dsonar.projectKey=WagWorld \
+                        -Dsonar.java.binaries=.
+                    '''
+                }
+            }
+        }
 
-        // stage('OWASP Dependency Check') {
-        //     steps {
-        //         dependencyCheck additionalArguments: '--scan ./ --format XML', odcInstallation: 'Dependency-Check'
-        //         dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-        //     }
-        // }
+        stage('OWASP Dependency Check') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./ --format XML', odcInstallation: 'Dependency-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
 
-        // stage('Code Quality Gate') {
-        //     steps {
-        //         script {
-        //             waitForQualityGate abortPipeline: false, credentialsId: 'SonarQube-Token-for-Jenkins'
-        //         }
-        //     }
-        // }
+        stage('Code Quality Gate') {
+            steps {
+                script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'SonarQube-Token-for-Jenkins'
+                }
+            }
+        }
 
         stage('Docker Build & Deploy') {
             steps {
