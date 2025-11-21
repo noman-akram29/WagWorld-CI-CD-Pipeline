@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: wagworld-store
+  namespace: default
 spec:
   selector:
     matchLabels:
@@ -23,6 +24,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: wagworld-store
+  namespace: default
 spec:
   type: LoadBalancer
   selector:
