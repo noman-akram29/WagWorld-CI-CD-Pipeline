@@ -18,43 +18,23 @@
         update_cache: yes
         cache_valid_time: 3600
 
-    - name: Build Docker image
+    - name: Build and push image to Docker Hub
       community.docker.docker_image:
-        name: "{{ docker_image }}"
+        name: "{{ docker_hub_repo }}"
         tag: latest
         build:
           path: "{{ workspace_dir }}"
           pull: yes
+        push: yes
         source: build
-        state: present
 
-    - name: Tag Docker image for Docker Hub
-      community.docker.docker_image:
-        name: "{{ docker_image }}:latest"
-        repository: "{{ docker_hub_repo }}:latest"
-        state: present
-
-    - name: Log in to Docker Hub
-      community.docker.docker_login:
-        username: "{{ docker_hub_user }}"
-        password: "{{ docker_pat }}"
-      no_log: true
-
-    - name: Push Docker image to Docker Hub
-      community.docker.docker_image:
-        name: "{{ docker_hub_repo }}"
-        tag: latest
-        push: true
-        source: push
-        state: present
-
-    - name: Stop and remove existing container
+    - name: Remove old container if exists
       community.docker.docker_container:
         name: "{{ container_name }}"
         state: absent
         force_kill: yes
 
-    - name: Run new Docker container
+    - name: Run new container
       community.docker.docker_container:
         name: "{{ container_name }}"
         image: "{{ docker_hub_repo }}:latest"
