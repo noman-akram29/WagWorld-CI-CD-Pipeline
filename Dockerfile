@@ -1,14 +1,20 @@
+# Dockerfile
 FROM openjdk:17.0.2
 
-
-COPY . /usr/src/myapp
 WORKDIR /usr/src/myapp
 
 
-RUN chmod +x mvnw
+COPY mvnw .
+COPY .mvn .mvn/
+COPY pom.xml .
 
 
-RUN ./mvnw clean package -DskipTests
+COPY src ./src
+
+
+RUN chmod +x ./mvnw && ./mvnw -B clean package -DskipTests
+
+EXPOSE 8080
 
 
 CMD ["./mvnw", "cargo:run", "-Ptomcat90"]
