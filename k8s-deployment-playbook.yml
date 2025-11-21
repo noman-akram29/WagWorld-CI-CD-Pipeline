@@ -7,6 +7,11 @@
     app_manifest: /var/lib/jenkins/workspace/WagWorld-Pipeline/k8s-deployment.yaml
 
   pre_tasks:
+    - name: Install python3-pip if missing
+      raw: apt update && apt install -y python3-pip
+      become: yes
+      changed_when: yes
+      
     - name: Install required Python libraries for kubernetes.core module
       pip:
         name:
