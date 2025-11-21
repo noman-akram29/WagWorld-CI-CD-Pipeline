@@ -18,6 +18,13 @@
         update_cache: yes
         cache_valid_time: 3600
 
+    - name: Log in to Docker Hub
+      community.docker.docker_login:
+        username: "{{ docker_hub_user }}"
+        password: "{{ docker_pat }}"
+        reauthorize: yes
+      no_log: true
+
     - name: Build and push image to Docker Hub
       community.docker.docker_image:
         name: "{{ docker_hub_repo }}"
@@ -32,7 +39,6 @@
       community.docker.docker_container:
         name: "{{ container_name }}"
         state: absent
-        force_kill: yes
 
     - name: Run new container
       community.docker.docker_container:
