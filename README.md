@@ -157,8 +157,40 @@ Here’s a rough structure of the repo:
 
 
 ---
+├── Dockerfile
+├── Jenkinsfile
+├── LICENSE
+├── LICENSE_HEADER
+├── NOTICE
+├── README.md
+├── dependency-check-report.xml
+├── docker-playbook.yaml
+├── format.xml
+├── k8s-deployment-playbook.yml
+├── k8s-deployment.yaml
+├── mvnw
+├── mvnw.cmd
+├── pom.xml
+├── renovate.json
+├── src
+│   ├── main
+│   ├── site
+│   └── test
+└── target
+    ├── cargo
+    ├── classes
+    ├── formatter-maven-cache.properties
+    ├── generated-sources
+    ├── generated-test-sources
+    ├── impsort-maven-cache.properties
+    ├── jpetstore
+    ├── jpetstore.war
+    ├── maven-archiver
+    ├── osgi
+    ├── site
+    └── test-classes
 
-
+15 directories, 18 files
 ---
 
 ## Credentials & Secrets
