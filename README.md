@@ -1,88 +1,204 @@
-# WagWorld-CI-CD-Pipeline
-Java, Jenkins, Maven, Ansible, SonarQube, Trivy, Kubernetes, Dependency-Check
+# WagWorld CI/CD Pipeline
+
+This repository implements a **full CI/CD pipeline** for the WagWorld Store application using:
+
+- **Jenkins** for orchestration  
+- **Maven** for building a Java web application (WAR)  
+- **SonarQube** for static code analysis  
+- **OWASP Dependency-Check** for security scanning  
+- **Docker** for containerization  
+- **Ansible** for deployment automation  
+- **Kubernetes** for production deployment  
+
+---
+
+## Table of Contents
+
+1. [Architecture Overview](#architecture-overview)  
+2. [Pipeline Stages](#pipeline-stages)  
+3. [Kubernetes Deployment](#kubernetes-deployment)  
+4. [Ansible Playbook](#ansible-playbook)  
+5. [Docker Setup](#docker-setup)  
+6. [Prerequisites](#prerequisites)  
+7. [How to Use / Run the Pipeline](#how-to-use--run-the-pipeline)  
+8. [Project Structure](#project-structure)  
+9. [Credentials & Secrets](#credentials--secrets)  
+10. [Contributing](#contributing)  
+11. [License](#license)  
+
+---
+
+## Architecture Overview
+
+1. Developers push code to GitHub.  
+2. Jenkins pipeline is triggered, doing compilation, testing, packaging, static analysis, and security scanning.  
+3. Jenkins builds a Docker image containing the WAR file and pushes it to Docker Hub.  
+4. Ansible playbook runs locally (on Jenkins or a control node) to build and push Docker image, then remove any existing container and start a new one.  
+5. Using SSH, Jenkins (via Ansible) applies Kubernetes manifests to a cluster:  
+   - A **Deployment** with 2 replicas  
+   - A **LoadBalancer** Service exposing the application  
+
+---
+
+## Pipeline Stages
+
+The Jenkins pipeline includes:
+
+- **Workspace Cleanup**: Clean the Jenkins workspace before each run  
+- **SCM Checkout**: Checkout code from GitHub (`main` branch)  
+- **Maven Compile**: `mvn clean compile`  
+- **Maven Test**: `mvn test`  
+- **Build WAR**: `mvn clean install -DskipTests=true`  
+- **SonarQube Analysis**: Analyze code with SonarQube  
+- **OWASP Dependency Check**: Run dependency-check and publish report  
+- **Code Quality Gate**: Wait for quality gate result (Sonar)  
+- **Docker Build & Deploy**: Use Ansible to build/push Docker image  
+- **Deploy to Kubernetes**: Use Ansible + `kubectl` (via playbook) to deploy  
+
+---
+
+## Kubernetes Deployment
+
+Here is a summary of the Kubernetes manifest (based on your YAML):
+
+- **Deployment** `wagworld-store`  
+  - 2 replicas  
+  - Rolling update strategy (maxSurge: 1, maxUnavailable: 0)  
+  - Container: `nomanakram29/wagworld-store:latest`  
+  - Resource requests: `256Mi` memory, `200m` CPU  
+  - Resource limits: `512Mi` memory, `500m` CPU  
+  - Health checks: `livenessProbe`, `readinessProbe`, `startupProbe` all hitting `/healthz` on port `8080`  
+
+- **Service** `wagworld-store`  
+  - Type: `LoadBalancer`  
+  - Exposes port `80` → target port `8080`  
+
+---
+
+## Ansible Playbook
+
+There are two main playbooks:
+
+1. **`docker-playbook.yaml`**  
+   - Hosts: `localhost` (Jenkins control)  
+   - Logs into Docker Hub using provided credentials  
+   - Builds Docker image from workspace  
+   - Tags the image `docker_hub_user/wagworld-store:latest`  
+   - Pushes the image  
+   - Removes old container (if exists)  
+   - Runs new container, mapping host port `8082` → container port `8080`  
+
+2. **`k8s-deployment-playbook.yml`**  
+   - Uses Kubernetes module (`kubernetes.core.k8s`)  
+   - Reads `k8s-deployment.yaml` manifest  
+   - Applies the manifest to the Kubernetes cluster  
+   - Requires `kubeconfig` on target node (copied via SSH from Jenkins)  
+
+---
+
+## Docker Setup
+
+- Base image: `tomcat:9.0.93-jre17-temurin-jammy`  
+- Removes default Tomcat `webapps`  
+- Copies `target/jpetstore.war` (built by Maven) into `ROOT.war`  
+- Exposes port `8080`  
+
+---
+
+## Prerequisites
+
+To run this pipeline, you need:
+
+- **Jenkins** with the following:  
+  - JDK 17  
+  - Maven 3.x  
+  - SonarQube Scanner  
+  - Ansible installed / configured as a tool  
+  - SSH credentials to Kubernetes master node  
+  - Docker Hub credentials in Jenkins (username & token)  
+  - Kubeconfig to connect to the Kubernetes cluster  
+
+- **Docker Hub** account (to push the image)  
+
+- **Kubernetes cluster** (at least one master/control node that Ansible can ssh into)  
+
+---
+
+## How to Use / Run the Pipeline
+
+1. **Setup Credentials in Jenkins**:  
+   - DockerHub (username & PAT)  
+   - SSH key for Kubernetes master node  
+   - Kubeconfig (if using as a secret file)  
+
+2. **Configure Jenkins Global Tools**:  
+   - JDK  
+   - Maven  
+   - SonarQube Scanner  
+
+3. **Add a Jenkins Pipeline Job**:  
+   - Use the `Jenkinsfile` from this repo  
+   - Set up webhooks (optional) so pushing to GitHub can trigger builds  
+
+4. **Run the Playbooks**:  
+   - The Docker build & deploy is handled via Ansible playbook from Jenkins  
+   - Kubernetes manifests are applied by Ansible + `k8s-deployment-playbook.yml`  
+
+5. **Monitor**:  
+   - Jenkins -> pipeline status  
+   - SonarQube / Dependency-Check reports  
+   - Kubernetes: `kubectl get pods`, `kubectl get svc` to check deployment  
+
+---
+
+## Project Structure
+
+Here’s a rough structure of the repo:
 
 
-MyBatis WagWorld
-=================
+---
 
-[![Java CI](https://github.com/mybatis/jpetstore-6/actions/workflows/ci.yaml/badge.svg)](https://github.com/mybatis/jpetstore-6/actions/workflows/ci.yaml)
-[![Container Support](https://github.com/mybatis/jpetstore-6/actions/workflows/support.yaml/badge.svg)](https://github.com/mybatis/jpetstore-6/actions/workflows/support.yaml)
-[![Coverage Status](https://coveralls.io/repos/github/mybatis/jpetstore-6/badge.svg?branch=master)](https://coveralls.io/github/mybatis/jpetstore-6?branch=master)
-[![License](https://img.shields.io/:license-apache-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
-![mybatis-jpetstore](https://mybatis.org/images/mybatis-logo.png)
+---
 
-WagWorld Store is a full web application built on top of MyBatis 3, Spring 5 and Stripes.
+## Credentials & Secrets
 
-Essentials
-----------
+- **Docker Hub credentials**: used in Jenkins (DOCKER_USER, DOCKER_PAT)  
+- **SSH key**: Jenkins uses SSH agent to deploy to Kubernetes master  
+- **Kubeconfig**: either stored in Jenkins or copied via credentials `file` credential  
 
-* [See the docs](http://www.mybatis.org/jpetstore-6)
+> ⚠️ Make sure to **never commit** your secrets (passwords, tokens, private keys, kubeconfig) directly to the repository.
 
-## Other versions that you may want to know about
+---
 
-- WagWorld on top of Spring, Spring MVC, MyBatis 3, and Spring Security https://github.com/making/spring-jpetstore
-- WagWorld with Vaadin and Spring Boot with Java Config https://github.com/igor-baiborodine/jpetstore-6-vaadin-spring-boot
-- WagWorld on MyBatis Spring Boot Starter https://github.com/kazuki43zoo/mybatis-spring-boot-jpetstore
+## Contributing
 
-## Run on Application Server
-Running WagWorld sample under Tomcat (using the [cargo-maven2-plugin](https://codehaus-cargo.github.io/cargo/Maven2+plugin.html)).
+If you want to contribute or improve this pipeline:
 
-- Clone this repository
+1. Fork the repo  
+2. Make changes (e.g., better health checks, multi-environment support, Helm)  
+3. Submit a pull request with a clear description of your changes  
 
-  ```
-  $ git clone https://github.com/noman-akram29/WagWorld-CI-CD-Pipeline.git
-  ```
+---
 
-- Build war file
+## License
 
-  ```
-  $ cd WagWorld-Store
-  $ ./mvnw clean package
-  ```
+Specify your license here (e.g., **MIT**, **Apache-2.0**, or other).  
+If you don’t have one yet, you might want to add a `LICENSE` file to clarify how others can use your project.
 
-- Startup the Tomcat server and deploy web application
+---
 
-  ```
-  $ ./mvnw cargo:run -P tomcat90
-  ```
+## Next Steps / Enhancements
 
-  > Note:
-  >
-  > We provide maven profiles per application server as follow:
-  >
-  > | Profile        | Description |
-  > | -------------- | ----------- |
-  > | tomcat90       | Running under the Tomcat 9.0 |
-  > | tomcat85       | Running under the Tomcat 8.5 |
-  > | tomee80        | Running under the TomEE 8.0(Java EE 8) |
-  > | tomee71        | Running under the TomEE 7.1(Java EE 7) |
-  > | wildfly26      | Running under the WildFly 26(Java EE 8) |
-  > | wildfly13      | Running under the WildFly 13(Java EE 7) |
-  > | liberty-ee8    | Running under the WebSphere Liberty(Java EE 8) |
-  > | liberty-ee7    | Running under the WebSphere Liberty(Java EE 7) |
-  > | jetty          | Running under the Jetty 9 |
-  > | glassfish5     | Running under the GlassFish 5(Java EE 8) |
-  > | glassfish4     | Running under the GlassFish 4(Java EE 7) |
-  > | resin          | Running under the Resin 4 |
+Here are some ideas for improving this project further:
 
-- Run application in browser http://localhost:8080/WagWorld/ 
-- Press Ctrl-C to stop the server.
+- Use **Helm** for Kubernetes manifests, for better templating and multi-environment deployments  
+- Add **rolling updates** with image version tagging (instead of `latest`)  
+- Integrate **GitOps** (e.g. Flux or Argo CD) for declarative deployments  
+- Use **Trivy** (or other scanner) for container vulnerability scanning  
+- Add more tests (integration, UI), and deploy to staging / prod environments  
 
-## Run on Docker
-```
-docker build . -t wagworld-store
-docker run -p 8080:8080 wagworld-store
-```
-or with Docker Compose:
-```
-docker compose up -d
-```
+---
 
-## Try integration tests
-
-Perform integration tests for screen transition.
-
-```
-$ ./mvnw clean verify -P tomcat90
-```
+Let me know if you like this, or if you want me to modify / expand any section (e.g. add badges, diagrams, etc.).
+::contentReference[oaicite:0]{index=0}
