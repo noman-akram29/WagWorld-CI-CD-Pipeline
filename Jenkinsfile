@@ -91,8 +91,8 @@ pipeline {
                             withCredentials([file(credentialsId: 'K8s-Secret', variable: 'KUBECONFIG_SECRET')]) {
                                 sh '''
                                     echo "Copying kubeconfig to remote k8s-master-server..."
-                                    scp -o StrictHostKeyChecking=no $KUBECONFIG_SECRET ubuntu@172.31.69.84:/home/ubuntu/.kube/config
-                                    ssh -o StrictHostKeyChecking=no ubuntu@172.31.69.84 "chmod 600 /home/ubuntu/.kube/config"
+                                    scp -o StrictHostKeyChecking=no $KUBECONFIG_SECRET ubuntu@172.31.67.4:/home/ubuntu/.kube/config
+                                    ssh -o StrictHostKeyChecking=no ubuntu@172.31.67.4 "chmod 600 /home/ubuntu/.kube/config"
                                 '''
                             }
 
