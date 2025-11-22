@@ -147,7 +147,9 @@ To run this pipeline, you need:
 5. **Monitor**:  
    - Jenkins -> pipeline status  
    - SonarQube / Dependency-Check reports  
-   - Kubernetes: `kubectl get pods`, `kubectl get svc` to check deployment  
+   - Kubernetes: `kubectl get pods`, `kubectl get svc` to check deployment
+     
+<img width="1920" height="911" alt="image" src="https://github.com/user-attachments/assets/f102e969-a2db-4beb-b234-92ef294c0c98" />
 
 ---
 
@@ -200,8 +202,8 @@ Here’s a rough structure of the repo:
 - **Kubeconfig**: either stored in Jenkins or copied via credentials `file` credential  
 
 > ⚠️ Make sure to **never commit** your secrets (passwords, tokens, private keys, kubeconfig) directly to the repository.
-> <img width="1551" height="286" alt="Sample-Cerdentials" src="https://github.com/user-attachments/assets/e158f34c-fd13-49c4-a295-991e979fbd72" />
 
+> <img width="1551" height="286" alt="Sample-Cerdentials" src="https://github.com/user-attachments/assets/e158f34c-fd13-49c4-a295-991e979fbd72" />
 
 ---
 
