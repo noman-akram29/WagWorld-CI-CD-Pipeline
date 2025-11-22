@@ -95,6 +95,7 @@ pipeline {
                                     ssh -o StrictHostKeyChecking=no ubuntu@172.31.67.4 "chmod 600 /home/ubuntu/.kube/config"
                                 '''
                             }
+                            // private ip of master kubernetes server : 172.31.67.4
 
                             // Run the Ansible playbook that applies the Kubernetes manifest
                             ansiblePlaybook(

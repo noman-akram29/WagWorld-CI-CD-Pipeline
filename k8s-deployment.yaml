@@ -3,12 +3,19 @@ kind: Deployment
 metadata:
   name: wagworld-store
   namespace: default
+  labels:
+    app: wagworld-store
 spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: wagworld-store
-  replicas: 2
-  template: 
+  template:
     metadata:
       labels:
         app: wagworld-store
@@ -16,21 +23,55 @@ spec:
       containers:
       - name: wagworld-store
         image: nomanakram29/wagworld-store:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
-        imagePullPolicy: Always
+          name: http
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /healthz        # change to your actual health endpoint if different
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /healthz        # change to your actual readiness endpoint if different
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:           # protects slow-starting containers
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 30   # gives ~5 minutes to start
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: wagworld-store
   namespace: default
+  labels:
+    app: wagworld-store
 spec:
   type: LoadBalancer
   selector:
     app: wagworld-store
   ports:
-  - name: http
-    protocol: TCP
-    port: 80
-    targetPort: 8080
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8080
